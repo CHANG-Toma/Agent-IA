@@ -70,3 +70,17 @@ Pour chaque test : recopier la requete, la reponse de l'agent, et une breve anal
 - Document unique au format .docx
 - Nom du fichier : Nom_Prenom_AgentIA_Marketing_M1.docx
 - Remise selon les modalites indiquees par l'enseignant (plateforme, date limite)
+
+---
+
+## 7. Checklist de verification avant remise
+
+Cocher avant d'envoyer le rapport :
+
+- [ ] **1.1** Capture workflow complet n8n ; capture panneau chat (requete + reponse) ; capture detail noeud AI Agent (prompt systeme + outils)
+- [ ] **1.2** Capture liste des modeles (`ollama list` ou interface Ollama) ; modele utilise et version indiques
+- [ ] **1.3** Capture resultat test avec URL reelle ; requete et reponse completes visibles
+- [ ] **2** Au moins 2 tests : un avec URL (site precise), un variante ; pour chaque : requete, reponse, breve analyse (pertinence, coherence, utilisation outil web)
+- [ ] **3** Texte expliquant l'acces aux logs (onglet Executions) ; capture execution reussie (declencheur, noeuds, statut) ; si HTTP Request : preuve dans les logs de l'appel et des donnees recues
+- [ ] **4** Structure du document respectee (page de garde, intro, config, workflow, tests, logs, conclusion, annexes)
+- [ ] **6** Fichier .docx nomme Nom_Prenom_AgentIA_Marketing_M1.docx

@@ -1,0 +1,132 @@
+{
+  "name": "Agent Marketing - TinyLlama (pret a importer)",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {
+          "responseMode": "whenLastNodeFinishes"
+        }
+      },
+      "id": "trigger-001",
+      "name": "Chat Trigger",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "position": [220, 380],
+      "typeVersion": 1,
+      "webhookId": "agent-marketing-tinyllama-import"
+    },
+    {
+      "parameters": {
+        "jsCode": "const chatInput = $input.first().json.chatInput || '';\nconst urlMatch = chatInput.match(/https?:\\/\\/[^\\s]+/);\nconst url = urlMatch ? urlMatch[0].trim() : 'https://example.com';\nreturn [{ json: { chatInput, url } }];"
+      },
+      "id": "code-extract",
+      "name": "Extract URL",
+      "type": "n8n-nodes-base.code",
+      "position": [440, 380],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "options": {
+          "allowUnauthorizedCerts": true,
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "id": "http-fetch",
+      "name": "Fetch Page",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [660, 380],
+      "typeVersion": 4.2
+    },
+    {
+      "parameters": {
+        "jsCode": "const chatInput = $('Extract URL').first().json.chatInput;\nconst raw = $input.first().json;\nlet pageContent = raw.body ?? raw.data ?? raw.text ?? JSON.stringify(raw);\nif (typeof pageContent === 'string') {\n  pageContent = pageContent.replace(/<script[^>]*>[\\s\\S]*?<\\/script>/gi, '').replace(/<style[^>]*>[\\s\\S]*?<\\/style>/gi, '').replace(/<[^>]+>/g, ' ').replace(/\\s+/g, ' ').trim();\n  if (pageContent.length > 2500) pageContent = pageContent.slice(0, 2500) + '...';\n}\nreturn [{ json: { chatInput, pageContent } }];"
+      },
+      "id": "code-prepare",
+      "name": "Prepare for LLM",
+      "type": "n8n-nodes-base.code",
+      "position": [880, 380],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "jsCode": "const { chatInput, pageContent } = $input.first().json;\nconst userMessage = `Contenu du site :\\n${pageContent}\\n\\nQuestion : Propose une stratégie marketing en 5 points (secteur, cible, objectifs, thèmes, planning). Réponds en français.`;\nconst body = {\n  model: 'tinyllama',\n  stream: false,\n  messages: [\n    { role: 'system', content: 'Tu es un expert marketing. Réponds en français par une stratégie de contenu courte et structurée.' },\n    { role: 'user', content: userMessage }\n  ]\n};\nconst response = await this.helpers.httpRequest({\n  method: 'POST',\n  url: 'http://host.docker.internal:11434/api/chat',\n  body,\n  json: true,\n  skipSslCertificateValidation: true\n});\nconst content = response.message?.content ?? response.body?.message?.content ?? response.content;\nconst text = (typeof content === 'string' ? content : (response.message || response.body?.message || 'Pas de réponse.'));\nlet out = typeof text === 'string' ? text : (text?.content ?? JSON.stringify(text));\nif (typeof out === 'string') {\n  if (/^Tu es un consultant/i.test(out)) out = out.replace(/^Tu es un consultant[^\\n]*\\.?\\s*\\n?/gi, '').replace(/^Tu analys[^\\n]*\\.?\\s*\\n?/gi, '').trim();\n  const echo = out.indexOf('---');\n  if (echo > 20 && /Demande de l'utilisateur|Analyse le site/.test(out.slice(echo))) out = out.slice(0, echo).trim();\n}\nif (typeof out === 'string' && out.length < 40) out = 'TinyLlama n\\'a pas généré de stratégie. Réessaie avec https://example.com';\nreturn [{ json: { text: out } }];"
+      },
+      "id": "code-ollama",
+      "name": "Call Ollama",
+      "type": "n8n-nodes-base.code",
+      "position": [1100, 380],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "content": "## Après import :\n\n1. Aucune credential à configurer (Ollama est appelé en direct dans le nœud Call Ollama).\n\n2. Save workflow (Ctrl+S) > Activer (interrupteur en haut) > Chat en bas pour tester.\n\n3. Exemple : « Analyse le site https://example.com et propose une stratégie de contenu marketing »\n\nOllama doit tourner sur ta machine avec : ollama pull tinyllama",
+        "height": 240,
+        "width": 320,
+        "color": 4
+      },
+      "id": "note-001",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [180, 120],
+      "typeVersion": 1
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Chat Trigger": {
+      "main": [
+        [
+          {
+            "node": "Extract URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract URL": {
+      "main": [
+        [
+          {
+            "node": "Fetch Page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Page": {
+      "main": [
+        [
+          {
+            "node": "Prepare for LLM",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare for LLM": {
+      "main": [
+        [
+          {
+            "node": "Call Ollama",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": false
+  }
+}

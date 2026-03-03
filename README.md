@@ -11,7 +11,7 @@ Ce projet vise a permettre aux etudiants de Master 1 de concevoir et deployer un
 - Configurer et connecter les composants (Docker, n8n, Ollama) pour faire fonctionner un agent
 - Implementer un cas d'usage concret en marketing : analyse d'URL web et generation de strategie de contenu
 
-Le livrable attendu est un document Word contenant les captures d'ecran de l'interface n8n fonctionnelle, la configuration du modele dans Ollama et le resultat de l'execution de l'agent.
+Le livrable attendu est un document Word (.docx) respectant les consignes detaillees : captures d'ecran (workflow n8n, panneau chat, noeud AI Agent, configuration Ollama, resultat d'execution), au moins deux tests de prompt avec analyse, analyse des logs d'execution (onglet Executions), et la structure recommandee (page de garde, introduction, configuration, workflow, tests, logs, conclusion). Nom du fichier : `Nom_Prenom_AgentIA_Marketing_M1.docx`. **Consignes completes :** [04-Livrable/consignes-rapport.md](04-Livrable/consignes-rapport.md)
 
 ---
 
